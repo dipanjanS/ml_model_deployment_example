@@ -1,4 +1,7 @@
-XGB_ML_ARTIFACT_PATH = './ml_app/saved_models/census_xgb_artifacts.pkl'
+import os
+
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) # get location of parent dir automatically
+XGB_ML_ARTIFACT_PATH = PARENT_DIR+'/saved_models/census_xgb_artifacts.pkl'
 
 
 MODEL_HISTORY = {

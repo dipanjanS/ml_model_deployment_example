@@ -6,44 +6,37 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 #####
 
-
-
-data = [{'education': 'HS-grad',
-  'workclass': '?',
-  'occupation': '?',
-  'capital.gain': 0,
-  'capital.loss': 4356,
-  'hours.per.week': 40},
- {'education': 'HS-grad',
-  'workclass': 'Private',
-  'native.country': 'United-States',
-  'sex': 'Female',
-  'education.num': 9,
-  'race': 'White',
-  'occupation': 'Exec-managerial',
-  'capital.gain': 0,
-  'capital.loss': 4356,
-  'marital.status': 'Widowed',
-  'relationship': 'Not-in-family',
-  'hours.per.week': 18,
-  'age': 82},
- {'education': 'Some-college',
-  'workclass': '',
-  'native.country': 'United-States',
-  'sex': 'Female',
-  'education.num': 10,
-  'race': '?',
-  'occupation': '?',
-  'capital.gain': 0,
-  'capital.loss': 4356,
-  'marital.status': 'Widowed',
-  'relationship': 'Unmarried',
-  'hours.per.week': '?',
-  'age': 66}]
-
-print(data)
+from flask import Flask, request, jsonify
+from flask_cors import CORS # Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible
 
 from ml_app.modeling import ml_pipeline as mp
 
-ml_artifacts = mp.load_xgb_ml_artifacts()
-print(mp.run_xgb_ml_pipeline(data, ml_artifacts))
+
+HEADERS = {'content-type': 'application/json'}
+
+# Instantiate Flask App
+app = Flask(__name__)
+CORS(app)
+
+# This runs as soon as we setup our web service to run
+XGB_ML_ARTIFACTS = mp.load_xgb_ml_artifacts()
+
+
+# Liveness test
+@app.route('/income_classifier/api/v1/liveness', methods=['GET', 'POST'])
+def liveness():
+    return 'API Live!'
+
+
+# Model 2 inference endpoint
+@app.route('/income_classifier/api/v1/predict', methods=['POST'])
+def xgb_model_inference():
+    input_data = request.get_json(force=True)['data']
+    response = mp.run_xgb_ml_pipeline(input_data, XGB_ML_ARTIFACTS)
+    return jsonify(response)
+
+
+# running REST interface, port=5000 for direct test
+# use debug=True when debugging, NOT when deploying
+if __name__ == "__main__":
+    app.run(debug=False, host='0.0.0.0', port=8900)
